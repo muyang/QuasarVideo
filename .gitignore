@@ -1,0 +1,12 @@
+.env
+.DS_Store
+.npm-cache/
+node_modules/
+frontend/node_modules/
+frontend/.next/
+backend/.venv/
+__pycache__/
+*.py[cod]
+uploads/
+storage/
+*.log

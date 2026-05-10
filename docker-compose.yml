@@ -1,0 +1,57 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      AIVIS_UPLOAD_DIR: ${AIVIS_UPLOAD_DIR:-/data/uploads}
+      AIVIS_DATABASE_PATH: ${AIVIS_DATABASE_PATH:-/data/storage/aivis.db}
+      AIVIS_PREPROCESS_DIR: ${AIVIS_PREPROCESS_DIR:-/data/storage/preprocess}
+      AIVIS_CORS_ORIGINS: ${AIVIS_CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001}
+      AIVIS_TASK_EXECUTOR: ${AIVIS_TASK_EXECUTOR:-celery}
+      AIVIS_CELERY_BROKER_URL: ${AIVIS_CELERY_BROKER_URL:-redis://redis:6379/0}
+      AIVIS_CELERY_RESULT_BACKEND: ${AIVIS_CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+    volumes:
+      - aivis_uploads:/data/uploads
+      - aivis_storage:/data/storage
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: celery -A app.celery_app.celery_app worker --loglevel=info
+    environment:
+      AIVIS_UPLOAD_DIR: ${AIVIS_UPLOAD_DIR:-/data/uploads}
+      AIVIS_DATABASE_PATH: ${AIVIS_DATABASE_PATH:-/data/storage/aivis.db}
+      AIVIS_PREPROCESS_DIR: ${AIVIS_PREPROCESS_DIR:-/data/storage/preprocess}
+      AIVIS_CORS_ORIGINS: ${AIVIS_CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001}
+      AIVIS_TASK_EXECUTOR: ${AIVIS_TASK_EXECUTOR:-celery}
+      AIVIS_CELERY_BROKER_URL: ${AIVIS_CELERY_BROKER_URL:-redis://redis:6379/0}
+      AIVIS_CELERY_RESULT_BACKEND: ${AIVIS_CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+    volumes:
+      - aivis_uploads:/data/uploads
+      - aivis_storage:/data/storage
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+
+volumes:
+  aivis_uploads:
+  aivis_storage:

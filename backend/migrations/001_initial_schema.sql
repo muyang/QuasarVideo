@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS videos (
+  id TEXT PRIMARY KEY,
+  payload TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT PRIMARY KEY,
+  payload TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_rowid ON tasks(rowid);
